@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications Studio - 4K MP4 Push Simulator</title>
+
+  <!-- Google Material 3 Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="notifications.css">
+</head>
+
+<body class="dark-mode">
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <div class="m3-app-icon">
+          <span class="material-symbols-outlined">notifications_active</span>
+        </div>
+        <div>
+          <h1>Notifications Studio</h1>
+        </div>
+      </div>
+
+      <!-- App Navigation Tabs -->
+      <nav class="app-nav-tabs" aria-label="Page Navigation">
+        <a href="index.html" class="nav-tab">
+          <span class="material-symbols-outlined">forum</span>
+          <span>Messages</span>
+        </a>
+        <a href="notifications.html" class="nav-tab active">
+          <span class="material-symbols-outlined">notifications_active</span>
+          <span>Notifications</span>
+        </a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="loadDemoBtn" class="btn m3-btn m3-btn-tonal" title="Load sample demo notification">
+          <span class="material-symbols-outlined btn-symbol">play_circle</span>
+          <span>Load Demo</span>
+        </button>
+        <button id="themeToggleBtn" class="btn m3-btn m3-btn-outline btn-theme" title="Switch between Dark and Light mode">
+          <span id="themeMoonIcon" class="material-symbols-outlined theme-icon hidden">dark_mode</span>
+          <span id="themeSunIcon" class="material-symbols-outlined theme-icon">light_mode</span>
+          <span id="themeToggleText">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-layout notif-main-layout">
+    <div class="workspace-layout notif-workspace-layout">
+      <!-- Left Column: Display Screen (Exact Match from Messages Page) -->
+      <section class="column-display" aria-label="Notification Video Stage Screen">
+        <div class="stage-wrapper">
+          <!-- Video Stage Frame: Stable 16:9 Landscape with Digital Green Screen -->
+          <div class="video-stage-frame ratio-16-9 bg-green width-standard valign-top" id="stageFrame">
+            <!-- Stage Top Bar: Resolution & Chroma Key Info -->
+            <div class="stage-info-bar">
+              <div class="badge-ratio">
+                <span class="ratio-dot"></span>
+                <span id="ratioBadgeText">16:9 Landscape (4K 60FPS)</span>
+              </div>
+              <div class="badge-export-mode" id="exportModeBadge" title="Downloaded video exports with #00FF00 Digital Green Screen for chroma key editing">
+                <span class="export-mode-dot" id="exportModeDot"></span>
+                <span id="exportModeBadgeText">Export: Green Screen (#00FF00)</span>
+              </div>
+            </div>
+
+            <!-- Message Display Container (Clean Chroma Canvas, No Phone Frames) -->
+            <div id="displayContainer" class="display-container notif-display-container">
+              <!-- Populated dynamically by notifications.js -->
+            </div>
+          </div>
+
+          <!-- Stage Footer Action: Notification Theme, Preview & 4K MP4 Export -->
+          <div class="stage-footer">
+            <!-- Stage Display Mode (All Stacked vs Current Only) -->
+            <div class="notif-stage-mode-row">
+              <span class="theme-row-label">Stage Display:</span>
+              <div class="m3-segmented-control" id="stageModeOptions">
+                <button type="button" class="studio-pill active" data-mode="all" id="stageModeAllBtn" title="Display all saved notifications stacked in sequence">
+                  <span class="material-symbols-outlined pill-symbol">view_agenda</span>
+                  <span class="pill-text">All Stacked</span>
+                </button>
+                <button type="button" class="studio-pill" data-mode="current" id="stageModeCurrentBtn" title="Display only the currently selected notification">
+                  <span class="material-symbols-outlined pill-symbol">crop_portrait</span>
+                  <span class="pill-text">Current Only</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Notification Color Style Selector (Black / White) -->
+            <div class="notif-theme-row">
+              <span class="theme-row-label">Notification Style:</span>
+              <div class="m3-segmented-control" id="themeOptions">
+                <button type="button" class="studio-pill active" data-theme="black" id="themeBlackBtn" title="Black / Dark Glass Notification">
+                  <span class="color-dot bg-black"></span>
+                  <span class="pill-text">Black</span>
+                </button>
+                <button type="button" class="studio-pill" data-theme="white" id="themeWhiteBtn" title="White / Light Glass Notification">
+                  <span class="color-dot bg-white"></span>
+                  <span class="pill-text">White</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Action Buttons: Preview & Download 4K MP4 -->
+            <div class="stage-footer-actions notif-actions-grid">
+              <button id="previewNotifBtn" class="m3-btn m3-btn-tonal-large btn-preview-notif" type="button" title="Preview notification animation once without looping">
+                <span class="material-symbols-outlined btn-symbol" id="previewBtnIcon">play_arrow</span>
+                <span id="previewBtnText">Preview Notifications</span>
+              </button>
+
+              <button id="download4kBtn" class="m3-btn m3-btn-filled-large btn-record-video" type="button" title="Download broadcast grade 4K MP4 video">
+                <span class="spinner hidden" id="recordSpinner"></span>
+                <span id="recordIcon" class="material-symbols-outlined btn-symbol">videocam</span>
+                <span id="recordBtnText">Download 4K Video (MP4)</span>
+              </button>
+            </div>
+
+            <!-- Video Rendering Progress Bar (Matches Messages Page) -->
+            <div id="videoProgressContainer" class="video-progress-container hidden" role="region" aria-label="Video Generation Progress">
+              <div class="progress-header">
+                <div class="progress-status-box">
+                  <span class="spinner-small" id="progressSpinner"></span>
+                  <span id="progressStatusText" class="progress-status-text">Preparing 4K Master render...</span>
+                </div>
+                <span id="progressPercentage" class="progress-percentage">0%</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <div id="progressBar" class="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+              <div class="progress-footer">
+                <span id="progressDetailText" class="progress-detail-text">Rendering 4K 60FPS • Visually Lossless</span>
+                <span id="progressEtaText" class="progress-eta-text">Calculating time...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Characters, Composer & Saved Notifications -->
+      <section class="column-typing" aria-label="Notification Controls">
+        <div class="control-panel notif-control-panel">
+          <!-- Section 1: Characters Management -->
+          <div class="studio-card">
+            <div class="studio-card-header">
+              <div class="card-title-group">
+                <span class="material-symbols-outlined card-icon">groups</span>
+                <h2>Characters</h2>
+              </div>
+              <button id="openAddCharModalBtn" class="btn-add-char" type="button" title="Add a new character">
+                <span class="material-symbols-outlined">person_add</span>
+                <span>Add Character</span>
+              </button>
+            </div>
+            <div class="character-chips-row" id="characterChipsRow">
+              <!-- Populated dynamically via notifications.js -->
+            </div>
+          </div>
+
+          <!-- Section 2: Compose Notification Form -->
+          <div class="studio-card">
+            <div class="studio-card-header">
+              <div class="card-title-group">
+                <span class="material-symbols-outlined card-icon">edit_notifications</span>
+                <h2 id="composerHeading">Compose Notification</h2>
+              </div>
+              <button id="btnNewNotif" class="btn-add-char" type="button" title="Start a fresh new notification">
+                <span class="material-symbols-outlined">add</span>
+                <span>New</span>
+              </button>
+            </div>
+
+            <form id="notifComposerForm" class="composer-form" onsubmit="return false;">
+              <div class="form-field">
+                <label class="form-label" for="composerSenderSelect">Sender Character</label>
+                <select id="composerSenderSelect" class="form-select">
+                  <!-- Populated dynamically from characters -->
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label class="form-label" for="composerMessageInput">
+                  <span>Message Text</span>
+                  <span id="charCount" style="font-size: 0.75rem; opacity: 0.7;">0 / 140</span>
+                </label>
+                <textarea id="composerMessageInput" class="form-textarea" placeholder="Type notification message here..." required></textarea>
+              </div>
+
+              <div class="form-field-row">
+                <div class="form-field">
+                  <label class="form-label" for="composerTimeInput">Time Badge</label>
+                  <input type="text" id="composerTimeInput" class="form-input" value="now" placeholder="e.g. now, 2m ago">
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="composerDurationRange">
+                    <span>Display Duration</span>
+                    <span class="slider-val-badge" id="durationValueBadge">3.0s</span>
+                  </label>
+                  <div class="range-slider-group">
+                    <input type="range" id="composerDurationRange" class="range-slider" min="1.0" max="8.0" step="0.5" value="3.0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="composer-btn-group" id="composerBtnGroup">
+                <button type="submit" id="saveNotifBtn" class="btn-add-notif">
+                  <span class="material-symbols-outlined" id="saveNotifIcon">save</span>
+                  <span id="saveNotifBtnText">Save Notification</span>
+                </button>
+                <button type="button" id="saveAsNewNotifBtn" class="btn-add-notif btn-add-secondary hidden" title="Add as a new separate notification">
+                  <span class="material-symbols-outlined">add_circle</span>
+                  <span>Add as New</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Section 3: Saved Notifications -->
+          <div class="studio-card">
+            <div class="studio-card-header">
+              <div class="card-title-group">
+                <span class="material-symbols-outlined card-icon">bookmark</span>
+                <h2>Saved Notifications</h2>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="timeline-header-meta" id="savedCountMeta">2 saved</span>
+                <button id="btnHeaderAddNotif" class="btn-add-char" type="button" title="Add another notification">
+                  <span class="material-symbols-outlined">add</span>
+                  <span>Add</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="saved-notifs-list" id="savedNotifsList">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Add & Customize Character Modal -->
+  <div class="modal-overlay" id="charModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="charModalTitle">Add New Character</h3>
+        <button type="button" class="btn-icon-subtle" id="closeCharModalBtn">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="avatar-upload-preview-area">
+        <img id="charAvatarPreviewImg" class="avatar-preview-circle hidden" src="" alt="Avatar Preview">
+        <div id="charAvatarPlaceholder" class="avatar-preview-circle">
+          <span class="material-symbols-outlined">person</span>
+        </div>
+        <div>
+          <button type="button" class="btn m3-btn m3-btn-tonal btn-upload-file">
+            <span class="material-symbols-outlined">add_a_photo</span>
+            <span>Upload Photo</span>
+            <input type="file" id="charPhotoFileInput" accept="image/*">
+          </button>
+          <div style="font-size: 0.76rem; color: var(--md-sys-color-on-surface-variant); margin-top: 6px;">
+            JPG, PNG or WebP. Auto-cropped circular.
+          </div>
+        </div>
+      </div>
+
+      <form id="charModalForm" onsubmit="return false;">
+        <input type="hidden" id="editingCharId" value="">
+        <div class="form-field" style="margin-bottom: 20px;">
+          <label class="form-label" for="charNameInput">Character Name</label>
+          <input type="text" id="charNameInput" class="form-input" placeholder="e.g. Linda, Teta, Mom, Coach..." required>
+        </div>
+
+        <div class="modal-footer" id="charModalFooter">
+          <button type="button" class="btn m3-btn m3-btn-outline m3-btn-danger hidden" id="modalDeleteCharBtn">
+            <span class="material-symbols-outlined btn-symbol">delete</span>
+            <span>Delete</span>
+          </button>
+          <div style="display: flex; gap: 10px; margin-left: auto;">
+            <button type="button" class="btn m3-btn m3-btn-outline" id="cancelCharModalBtn">Cancel</button>
+            <button type="submit" class="btn m3-btn m3-btn-primary" id="saveCharModalBtn">Save Character</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="notifications.js"></script>
+</body>
+
+</html>

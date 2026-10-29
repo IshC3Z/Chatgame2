@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iMessage Mock Generator & Exporter</title>
+
+
+  <!-- Google Material 3 Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-mode">
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <button id="toggleSidebarHeaderBtn" class="sidebar-header-toggle" title="Toggle Projects Sidebar" aria-label="Toggle Projects Sidebar">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="m3-app-icon">
+          <span class="material-symbols-outlined">forum</span>
+        </div>
+        <div>
+          <h1>iMessage Mock Generator</h1>
+        </div>
+      </div>
+      <nav class="app-nav-tabs" aria-label="Page Navigation">
+        <a href="index.html" class="nav-tab active">
+          <span class="material-symbols-outlined">forum</span>
+          <span>Messages</span>
+        </a>
+        <a href="notifications.html" class="nav-tab">
+          <span class="material-symbols-outlined">notifications_active</span>
+          <span>Notifications</span>
+        </a>
+        <button type="button" id="toggleControlsNavBtn" class="nav-tab nav-tab-toggle"
+          title="Toggle Message Controls on the side" aria-label="Toggle Message Controls" aria-pressed="false">
+          <span class="material-symbols-outlined nav-toggle-icon">tune</span>
+          <span id="navToggleLabel">Message Controls</span>
+        </button>
+      </nav>
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="btn m3-btn m3-btn-outline btn-theme"
+          title="Switch between Dark and Light mode">
+          <span id="themeMoonIcon" class="material-symbols-outlined theme-icon hidden">dark_mode</span>
+          <span id="themeSunIcon" class="material-symbols-outlined theme-icon">light_mode</span>
+          <span id="themeToggleText">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-layout" id="mainLayout">
+    <!-- Collapsible Projects Sidebar Navigation -->
+    <aside class="project-sidebar" id="projectSidebar" aria-label="Projects Navigation">
+      <div class="sidebar-header">
+        <div class="sidebar-heading">
+          <span class="material-symbols-outlined sidebar-heading-icon">folder_special</span>
+          <span class="sidebar-title">Projects</span>
+        </div>
+        <button id="collapseSidebarBtn" class="sidebar-icon-btn" title="Collapse sidebar" aria-label="Collapse sidebar">
+          <span class="material-symbols-outlined">first_page</span>
+        </button>
+      </div>
+
+      <div class="sidebar-action-bar">
+        <button id="newProjectBtn" class="m3-btn m3-btn-filled btn-new-project" title="Create a new conversation project">
+          <span class="material-symbols-outlined btn-symbol">add</span>
+          <span>New Project</span>
+        </button>
+      </div>
+
+      <div class="sidebar-list-container">
+        <div class="sidebar-list-header">
+          <span class="sidebar-list-title">Saved Projects</span>
+          <span id="projectsCount" class="projects-count-pill">0</span>
+        </div>
+        <ul id="projectsList" class="projects-list" role="list">
+          <!-- Dynamically populated via JS -->
+        </ul>
+        <div id="projectsEmptyNotice" class="projects-empty-state hidden">
+          <span class="material-symbols-outlined empty-icon">folder_off</span>
+          <p>No saved projects</p>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="save-status-container" id="saveStatusContainer" title="Automatic project synchronization">
+          <span class="save-status-dot synced" id="saveStatusDot"></span>
+          <span class="save-status-label" id="saveStatusLabel">Saved</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workspace-layout">
+      <!-- Left Column: Display Side (16:9 Video Stage) -->
+      <section class="column-display" aria-label="16:9 Message Display Screen">
+      <div class="stage-wrapper">
+        <!-- Video Stage Frame with Dynamic Ratio & Chroma Key -->
+        <div class="video-stage-frame ratio-16-9 bg-green width-narrow valign-top has-shadow" id="stageFrame">
+          <!-- Backdrop reference photo layer (for visual alignment with footage) -->
+          <div id="stageBackdrop" class="stage-backdrop-layer"></div>
+
+          <!-- Stage Top Bar: Resolution & Background Info -->
+          <div class="stage-info-bar">
+            <div class="badge-ratio">
+              <span class="ratio-dot"></span>
+              <span id="ratioBadgeText">16:9 Widescreen (1080p 60FPS)</span>
+            </div>
+            <div class="stage-info-actions">
+              <button type="button" id="stageToggleControlsBtn" class="badge-stage-toggle"
+                title="Toggle Message Controls on the side" aria-label="Toggle Message Controls">
+                <span class="material-symbols-outlined stage-toggle-icon">tune</span>
+                <span id="stageToggleControlsText">Controls</span>
+              </button>
+              <div class="badge-export-mode" id="exportModeBadge" title="Downloaded video exports with #00FF00 Digital Green Screen for chroma key editing">
+                <span class="export-mode-dot" id="exportModeDot"></span>
+                <span id="exportModeBadgeText">Export: Green Screen (#00FF00)</span>
+              </div>
+            </div>
+            <!-- Hidden elements preserved for JS state -->
+            <div style="display: none;" aria-hidden="true">
+              <span id="bgIndicator"></span>
+              <span id="bgToggleText"></span>
+            </div>
+          </div>
+
+          <!-- Message Display Container (No Top Notch or Header Clutter) -->
+          <div id="displayContainer" class="display-container">
+            <div class="chat-empty-state" id="emptyStateNotice">
+              <div class="empty-icon">💬</div>
+              <p>No messages yet.</p>
+              <div class="empty-quick-add">
+                <button type="button" class="btn-insert-side btn-insert-receiver" id="emptyAddReceiverBtn" title="Start with Receiver message (Left)">
+                  <span class="insert-icon-circle">+</span>
+                  <span>Receiver</span>
+                </button>
+                <button type="button" class="btn-insert-side btn-insert-sender" id="emptyAddSenderBtn" title="Start with Sender message (Right)">
+                  <span>Sender</span>
+                  <span class="insert-icon-circle">+</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage Footer Actions: Transparent PNGs & Video Export -->
+        <div class="stage-footer">
+          <div class="stage-footer-actions">
+            <button id="downloadChatBtn" class="m3-btn m3-btn-tonal-large btn-download-png"
+              type="button" title="Save individual transparent high-resolution PNG bubbles in a ZIP archive">
+              <span class="spinner hidden" id="downloadSpinner"></span>
+              <span id="downloadIcon" class="material-symbols-outlined btn-symbol">photo_library</span>
+              <span id="downloadBtnText">Save Transparent Images (<span id="messageCountBadge">0</span>)</span>
+            </button>
+
+            <button id="recordVideoBtn" class="m3-btn m3-btn-filled-large btn-record-video"
+              type="button" title="Record Green Screen 1080p video for video editors">
+              <span class="spinner hidden" id="recordSpinner"></span>
+              <span id="recordIcon" class="material-symbols-outlined btn-symbol">videocam</span>
+              <span id="recordBtnText">Download 16:9 Video</span>
+            </button>
+          </div>
+
+          <!-- Video Rendering Progress Bar & Server Status -->
+          <div id="videoProgressContainer" class="video-progress-container hidden" role="region" aria-label="Video Generation Progress">
+            <div class="progress-header">
+              <div class="progress-status-box">
+                <span class="spinner-small" id="progressSpinner"></span>
+                <span id="progressStatusText" class="progress-status-text">Preparing 1080p render...</span>
+              </div>
+              <span id="progressPercentage" class="progress-percentage">0%</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div id="progressBar" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <div class="progress-footer">
+              <span id="progressDetailText" class="progress-detail-text">Connecting to rendering pipeline...</span>
+              <span id="progressEtaText" class="progress-eta-text">Calculating time...</span>
+            </div>
+          </div>
+
+          <!-- Video Render Recovery & Quick Download Banner -->
+          <div id="recentRenderBanner" class="recent-render-banner hidden" role="region" aria-label="Recent Render Recovery">
+            <div class="recent-render-content">
+              <span class="material-symbols-outlined recent-icon">check_circle</span>
+              <div class="recent-render-text-col">
+                <span class="recent-render-title">Finished Master Render Available</span>
+                <span id="recentRenderSubtitle" class="recent-render-subtitle">Ready to download</span>
+              </div>
+            </div>
+            <button id="downloadRecentVideoBtn" class="btn-recent-download" type="button" title="Download completed master video">
+              <span class="material-symbols-outlined btn-symbol">download</span>
+              <span>Download Video</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Studio & Video Customization Panel (Google Studio Inspector) -->
+        <div class="studio-card" id="studioCustomizer">
+          <div class="studio-card-header">
+            <div class="studio-title">
+              <span class="material-symbols-outlined studio-header-symbol">tune</span>
+              <h3 class="studio-heading">Video Studio Settings</h3>
+            </div>
+            <div class="studio-badge">
+              <span class="material-symbols-outlined badge-icon">check_circle</span>
+              <span>Pro Master 1080p</span>
+            </div>
+          </div>
+
+          <div class="studio-body">
+            <!-- Row 1: Aspect Ratio Selection -->
+            <div class="studio-row">
+              <label class="studio-label">Aspect Ratio</label>
+              <div class="m3-segmented-control" id="ratioOptions">
+                <button type="button" class="studio-pill active" data-ratio="16:9"
+                  title="16:9 Landscape (YouTube / Widescreen)">
+                  <span class="material-symbols-outlined pill-symbol">crop_16_9</span>
+                  <span class="pill-text">16:9 Landscape</span>
+                </button>
+                <button type="button" class="studio-pill" data-ratio="9:16"
+                  title="9:16 Portrait (TikTok / Reels / Shorts)">
+                  <span class="material-symbols-outlined pill-symbol">crop_portrait</span>
+                  <span class="pill-text">9:16 Shorts/Reels</span>
+                </button>
+                <button type="button" class="studio-pill" data-ratio="1:1" title="1:1 Square (Social Feed)">
+                  <span class="material-symbols-outlined pill-symbol">crop_square</span>
+                  <span class="pill-text">1:1 Square</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 2: Resolution & Quality (Creator Grade) -->
+            <div class="studio-row">
+              <label class="studio-label">Resolution & Quality</label>
+              <div class="m3-segmented-control" id="qualityOptions">
+                <button type="button" class="studio-pill active" data-quality="1080p"
+                  title="1080p Full HD with 2x Retina Super-Sampling (Tack-sharp text, 60 FPS)">
+                  <span class="material-symbols-outlined pill-symbol">hd</span>
+                  <span class="pill-text">1080p Retina</span>
+                </button>
+                <button type="button" class="studio-pill" data-quality="4k"
+                  title="4K Ultra HD (3840x2160 / 2160x3840) - Creator Master for YouTube, TikTok & Video Editors">
+                  <span class="material-symbols-outlined pill-symbol">4k</span>
+                  <span class="pill-text">4K Master</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 2: Scene Framing / Width (Crucial for 2-actor split screens) -->
+            <div class="studio-row">
+              <label class="studio-label">Scene Framing</label>
+              <div class="m3-segmented-control" id="widthOptions">
+                <button type="button" class="studio-pill active" data-width="narrow"
+                  title="Narrow column (740px) - ideal for split screen between two actors">
+                  <span class="material-symbols-outlined pill-symbol">splitscreen</span>
+                  <span class="pill-text">Split-Screen (740px)</span>
+                </button>
+                <button type="button" class="studio-pill" data-width="standard" title="Standard width (1060px)">
+                  <span class="pill-text">Standard (1060px)</span>
+                </button>
+                <button type="button" class="studio-pill" data-width="wide" title="Wide column (1300px)">
+                  <span class="pill-text">Full Width</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 4: Vertical Placement -->
+            <div class="studio-row">
+              <label class="studio-label">Vertical Position</label>
+              <div class="m3-segmented-control" id="valignOptions">
+                <button type="button" class="studio-pill active" data-valign="top"
+                  title="Upper Third - keeps actors seated below visible">
+                  <span class="material-symbols-outlined pill-symbol">vertical_align_top</span>
+                  <span class="pill-text">Upper Third</span>
+                </button>
+                <button type="button" class="studio-pill" data-valign="center" title="Center on screen">
+                  <span class="material-symbols-outlined pill-symbol">vertical_align_center</span>
+                  <span class="pill-text">Center</span>
+                </button>
+                <button type="button" class="studio-pill" data-valign="bottom" title="Lower Third">
+                  <span class="material-symbols-outlined pill-symbol">vertical_align_bottom</span>
+                  <span class="pill-text">Lower Third</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Row 5: Animation Pacing -->
+            <div class="studio-row">
+              <label class="studio-label">Animation Pacing</label>
+              <div class="m3-segmented-control" id="pacingOptions">
+                <button type="button" class="studio-pill" data-pacing="fast" title="Snappy pace (0.6s typing, 1s hold)">
+                  <span class="material-symbols-outlined pill-symbol">bolt</span>
+                  <span class="pill-text">Fast (0.6s)</span>
+                </button>
+                <button type="button" class="studio-pill active" data-pacing="cinematic"
+                  title="Natural pace (1.0s typing, 1.8s hold)">
+                  <span class="material-symbols-outlined pill-symbol">movie</span>
+                  <span class="pill-text">Cinematic (1.0s)</span>
+                </button>
+                <button type="button" class="studio-pill" data-pacing="slow"
+                  title="Dramatic pauses (1.5s typing, 2.5s hold)">
+                  <span class="material-symbols-outlined pill-symbol">hourglass_bottom</span>
+                  <span class="pill-text">Dramatic (1.5s)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Section Divider -->
+            <div class="studio-section-divider"></div>
+
+            <!-- Row 6: Toggles with Authentic Google Material 3 Switches -->
+            <div class="studio-switches-header">
+              <span class="switches-section-label">Studio Options & Physics</span>
+            </div>
+
+            <div class="studio-switches-grid">
+              <!-- Switch 1: Spring Bounce -->
+              <button type="button" class="studio-switch-card active" id="toggleBounceBtn"
+                title="Toggle realistic Apple iOS spring overshoot animation">
+                <div class="switch-card-info">
+                  <div class="switch-icon-box">
+                    <span class="material-symbols-outlined">animation</span>
+                  </div>
+                  <div class="switch-text-group">
+                    <span class="switch-title">Apple Spring Bounce</span>
+                    <span class="switch-desc">Authentic iOS overshoot physics</span>
+                  </div>
+                </div>
+                <div class="m3-switch" aria-hidden="true">
+                  <div class="m3-switch-track">
+                    <div class="m3-switch-thumb">
+                      <span class="material-symbols-outlined switch-check">check</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="sr-only" id="bounceStatusText">Active</span>
+              </button>
+
+              <!-- Switch 2: Sound FX -->
+              <button type="button" class="studio-switch-card active" id="toggleSoundBtn"
+                title="Add synchronized iMessage sound effects (swoosh & dings) to the video audio track">
+                <div class="switch-card-info">
+                  <div class="switch-icon-box">
+                    <span class="material-symbols-outlined">volume_up</span>
+                  </div>
+                  <div class="switch-text-group">
+                    <span class="switch-title">iMessage Sound FX</span>
+                    <span class="switch-desc">Synchronized audio track chimes</span>
+                  </div>
+                </div>
+                <div class="m3-switch" aria-hidden="true">
+                  <div class="m3-switch-track">
+                    <div class="m3-switch-thumb">
+                      <span class="material-symbols-outlined switch-check">check</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="sr-only" id="soundStatusText">Active</span>
+              </button>
+
+              <!-- Switch 3: Cinematic Drop Shadow -->
+              <button type="button" class="studio-switch-card active" id="toggleShadowBtn"
+                title="Render soft cinematic drop shadows under bubbles for contrast against video footage">
+                <div class="switch-card-info">
+                  <div class="switch-icon-box">
+                    <span class="material-symbols-outlined">contrast</span>
+                  </div>
+                  <div class="switch-text-group">
+                    <span class="switch-title">Cinematic Drop Shadow</span>
+                    <span class="switch-desc">Contrast against video footage</span>
+                  </div>
+                </div>
+                <div class="m3-switch" aria-hidden="true">
+                  <div class="m3-switch-track">
+                    <div class="m3-switch-thumb">
+                      <span class="material-symbols-outlined switch-check">check</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="sr-only" id="shadowStatusText">Active</span>
+              </button>
+
+              <!-- Switch 4: Scene Matcher / Backdrop Preview -->
+              <button type="button" class="studio-switch-card" id="uploadBackdropBtn"
+                title="Upload a screenshot of your video footage to preview bubble positioning">
+                <div class="switch-card-info">
+                  <div class="switch-icon-box">
+                    <span class="material-symbols-outlined">add_photo_alternate</span>
+                  </div>
+                  <div class="switch-text-group">
+                    <span class="switch-title" id="backdropBtnTitle">Scene Still Preview</span>
+                    <span class="switch-desc">Overlay bubble on video frame</span>
+                  </div>
+                </div>
+                <div class="m3-switch" aria-hidden="true">
+                  <div class="m3-switch-track">
+                    <div class="m3-switch-thumb">
+                      <span class="material-symbols-outlined switch-check">check</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="sr-only" id="backdropStatusText">Preview</span>
+              </button>
+              <input type="file" id="backdropFileInput" accept="image/*" style="display: none;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden Canvas for Hardware-Accelerated 60 FPS Video Recording -->
+        <canvas id="videoRecordingCanvas" width="1920" height="1080" style="display: none;"></canvas>
+      </div>
+    </section>
+
+    <!-- Right Column: Typing Side (Control Panel) -->
+    <section class="column-typing" id="columnTyping" aria-label="Conversation Controls">
+      <div class="control-panel">
+        <div class="panel-header">
+          <div class="panel-header-top">
+            <h2>Message Controls</h2>
+            <div class="panel-header-actions">
+              <div class="active-project-pill" id="activeProjectBadge" title="Click to rename active project">
+                <span class="material-symbols-outlined pill-icon">edit_note</span>
+                <span id="activeProjectNameDisplay">Untitled Project</span>
+              </div>
+              <button type="button" id="closeControlsBtn" class="btn-close-controls"
+                title="Hide Message Controls (Expand Screen)" aria-label="Hide Message Controls">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 1: Sender Controls -->
+        <div class="control-card sender-card">
+          <div class="card-header">
+            <div class="role-badge sender-badge">
+              <span class="dot sender-dot"></span>
+              <span>Sender</span>
+            </div>
+
+            <!-- Color Picker: Blue & Purple -->
+            <div class="color-picker-container" aria-label="Sender message color">
+              <span class="color-picker-label">Bubble Color:</span>
+              <div class="color-picker-options">
+                <button type="button" class="color-choice-btn color-choice-blue active" id="colorBlueBtn"
+                  title="Set Blue Bubbles">
+                  <span class="color-dot bg-blue"></span>
+                  <span>Blue</span>
+                </button>
+                <button type="button" class="color-choice-btn color-choice-purple" id="colorPurpleBtn"
+                  title="Set Purple Bubbles">
+                  <span class="color-dot bg-purple"></span>
+                  <span>Purple</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="m3-textfield">
+              <textarea id="senderInput" class="message-textarea sender-textarea" rows="3"
+                placeholder="Type a message..."></textarea>
+            </div>
+            <div class="card-actions">
+              <span class="char-count" id="senderCharCount">0 chars</span>
+              <button id="sendSenderBtn" class="m3-btn m3-btn-filled btn-send-sender">
+                <span>Send as Sender</span>
+                <span class="material-symbols-outlined btn-symbol">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Receiver Controls -->
+        <div class="control-card receiver-card">
+          <div class="card-header">
+            <div class="role-badge receiver-badge">
+              <span class="dot receiver-dot"></span>
+              <span>Receiver (Gray Bubbles)</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="m3-textfield">
+              <textarea id="receiverInput" class="message-textarea receiver-textarea" rows="3"
+                placeholder="Type a message..."></textarea>
+            </div>
+            <div class="card-actions">
+              <span class="char-count" id="receiverCharCount">0 chars</span>
+              <button id="sendReceiverBtn" class="m3-btn m3-btn-tonal btn-send-receiver">
+                <span>Send as Receiver</span>
+                <span class="material-symbols-outlined btn-symbol">send</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- =====================================================================
+       Google Material Design 3 Modal: Create New Project
+       ===================================================================== -->
+  <div id="newProjectModal" class="m3-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="newProjectModalTitle">
+    <div class="m3-dialog m3-dialog-wide new-project-dialog">
+      <!-- Dialog Header -->
+      <div class="m3-dialog-header">
+        <div class="m3-dialog-icon-title">
+          <div class="m3-icon-avatar primary">
+            <span class="material-symbols-outlined">create_new_folder</span>
+          </div>
+          <div>
+            <h2 id="newProjectModalTitle" class="m3-dialog-headline">Create New Project</h2>
+            <p class="m3-dialog-subhead">Configure canvas properties, templates & bubble styling</p>
+          </div>
+        </div>
+        <button type="button" class="m3-icon-btn dialog-close-btn" id="closeNewProjectModalBtn" title="Close" aria-label="Close dialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Dialog Body (Scrollable) -->
+      <form id="newProjectForm" class="m3-dialog-body">
+        <!-- 1. Project Name Field -->
+        <div class="m3-form-group">
+          <label for="newProjectNameInput" class="m3-field-label">Project Name</label>
+          <div class="m3-input-wrapper">
+            <span class="material-symbols-outlined input-leading-icon">edit_note</span>
+            <input type="text" id="newProjectNameInput" class="m3-text-input" placeholder="e.g. Secret Agent Twist, Viral TikTok Story..." maxlength="60" required autocomplete="off">
+          </div>
+          <span class="m3-field-hint">Give your conversation project a memorable name.</span>
+        </div>
+
+        <!-- 2. Aspect Ratio Preset Cards -->
+        <div class="m3-form-group">
+          <label class="m3-field-label">Video Canvas Ratio</label>
+          <div class="m3-preset-grid ratio-presets" id="newProjectRatioGrid">
+            <div class="m3-choice-card active" data-ratio="16:9">
+              <div class="card-radio-dot"></div>
+              <span class="material-symbols-outlined card-icon">crop_16_9</span>
+              <span class="card-title">16:9 Widescreen</span>
+              <span class="card-desc">YouTube / Desktop (1080p)</span>
+            </div>
+            <div class="m3-choice-card" data-ratio="9:16">
+              <div class="card-radio-dot"></div>
+              <span class="material-symbols-outlined card-icon">crop_portrait</span>
+              <span class="card-title">9:16 Portrait</span>
+              <span class="card-desc">TikTok / Reels / Shorts</span>
+            </div>
+            <div class="m3-choice-card" data-ratio="1:1">
+              <div class="card-radio-dot"></div>
+              <span class="material-symbols-outlined card-icon">crop_square</span>
+              <span class="card-title">1:1 Square</span>
+              <span class="card-desc">Social feeds & carousels</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Sender Bubble Theme -->
+        <div class="m3-form-group">
+          <label class="m3-field-label">Sender Bubble Accent</label>
+          <div class="m3-color-choice-row" id="newProjectColorRow">
+            <button type="button" class="color-select-card active" data-color="blue">
+              <span class="color-chip bg-blue"></span>
+              <div class="color-card-info">
+                <span class="color-name">iMessage Blue</span>
+                <span class="color-sub">Apple Classic (#007AFF)</span>
+              </div>
+              <span class="material-symbols-outlined select-check">check_circle</span>
+            </button>
+            <button type="button" class="color-select-card" data-color="purple">
+              <span class="color-chip bg-purple"></span>
+              <div class="color-card-info">
+                <span class="color-name">Neon Purple</span>
+                <span class="color-sub">Vibrant Accent (#AF52DE)</span>
+              </div>
+              <span class="material-symbols-outlined select-check">check_circle</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Starter Conversation Template -->
+        <div class="m3-form-group">
+          <label class="m3-field-label">Starter Script Template</label>
+          <div class="m3-template-grid" id="newProjectTemplateGrid">
+            <div class="m3-template-card active" data-template="blank">
+              <div class="template-header">
+                <span class="material-symbols-outlined template-icon">draft</span>
+                <span class="template-title">Blank Canvas</span>
+              </div>
+              <p class="template-desc">Start fresh with no messages. Build your conversation from scratch.</p>
+              <div class="template-footer">
+                <span class="template-badge">0 Messages</span>
+              </div>
+            </div>
+
+            <div class="m3-template-card" data-template="lunch">
+              <div class="template-header">
+                <span class="material-symbols-outlined template-icon">restaurant</span>
+                <span class="template-title">Casual Lunch</span>
+              </div>
+              <p class="template-desc">Friendly plans for meeting at an Italian place on 5th.</p>
+              <div class="template-footer">
+                <span class="template-badge">4 Messages • Friendly</span>
+              </div>
+            </div>
+
+            <div class="m3-template-card" data-template="plot_twist">
+              <div class="template-header">
+                <span class="material-symbols-outlined template-icon">auto_awesome</span>
+                <span class="template-title">Viral Plot Twist</span>
+              </div>
+              <p class="template-desc">High-energy unexpected windfall & startup reaction story.</p>
+              <div class="template-footer">
+                <span class="template-badge">4 Messages • Viral Hook</span>
+              </div>
+            </div>
+
+            <div class="m3-template-card" data-template="suspense">
+              <div class="template-header">
+                <span class="material-symbols-outlined template-icon">psychology_alt</span>
+                <span class="template-title">Tense Mystery</span>
+              </div>
+              <p class="template-desc">Suspenseful revelation message thread for drama creators.</p>
+              <div class="template-footer">
+                <span class="template-badge">5 Messages • Dramatic</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <!-- Dialog Footer Actions -->
+      <div class="m3-dialog-actions">
+        <button type="button" class="m3-btn m3-btn-outline" id="cancelNewProjectBtn">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="m3-btn m3-btn-filled btn-create-project-submit" id="submitNewProjectBtn">
+          <span class="material-symbols-outlined btn-symbol">rocket_launch</span>
+          <span>Create Project</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       Google Material Design 3 Modal: Delete Project Confirmation
+       ===================================================================== -->
+  <div id="deleteModal" class="m3-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="m3-dialog m3-dialog-danger">
+      <!-- Dialog Header -->
+      <div class="m3-dialog-header">
+        <div class="m3-dialog-icon-title">
+          <div class="m3-icon-avatar danger">
+            <span class="material-symbols-outlined">delete_forever</span>
+          </div>
+          <div>
+            <h2 id="deleteModalTitle" class="m3-dialog-headline">Delete Project?</h2>
+            <p class="m3-dialog-subhead">Permanent deletion confirmation</p>
+          </div>
+        </div>
+        <button type="button" class="m3-icon-btn dialog-close-btn" id="closeDeleteModalBtn" title="Cancel" aria-label="Cancel deletion">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Dialog Body -->
+      <div class="m3-dialog-body">
+        <p class="delete-warning-text">
+          Are you sure you want to permanently delete this project?
+        </p>
+        <div class="delete-project-callout">
+          <span class="material-symbols-outlined callout-icon">folder_delete</span>
+          <div class="callout-content">
+            <span class="callout-name" id="deleteTargetProjectName">Untitled Project</span>
+            <span class="callout-sub">All conversation bubbles, drafts, and video studio settings will be removed from SQLite.</span>
+          </div>
+        </div>
+        <p class="delete-sub-note">This action cannot be undone.</p>
+      </div>
+
+      <!-- Dialog Footer Actions -->
+      <div class="m3-dialog-actions">
+        <button type="button" class="m3-btn m3-btn-outline" id="cancelDeleteBtn">
+          <span>Keep Project</span>
+        </button>
+        <button type="button" class="m3-btn m3-btn-filled m3-btn-danger" id="confirmDeleteBtn">
+          <span class="material-symbols-outlined btn-symbol">delete</span>
+          <span>Delete Permanently</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       Google Material Design 3 Modal: Rename Project
+       ===================================================================== -->
+  <div id="renameModal" class="m3-dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="renameModalTitle">
+    <div class="m3-dialog">
+      <!-- Dialog Header -->
+      <div class="m3-dialog-header">
+        <div class="m3-dialog-icon-title">
+          <div class="m3-icon-avatar primary">
+            <span class="material-symbols-outlined">drive_file_rename_outline</span>
+          </div>
+          <div>
+            <h2 id="renameModalTitle" class="m3-dialog-headline">Rename Project</h2>
+            <p class="m3-dialog-subhead">Update project title & SQLite record</p>
+          </div>
+        </div>
+        <button type="button" class="m3-icon-btn dialog-close-btn" id="closeRenameModalBtn" title="Close" aria-label="Close rename modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Dialog Body -->
+      <form id="renameProjectForm" class="m3-dialog-body" onsubmit="return false;">
+        <!-- Current Name Callout -->
+        <div class="rename-current-callout">
+          <span class="material-symbols-outlined current-icon">history_edu</span>
+          <div class="current-meta">
+            <span class="current-label">Current Title</span>
+            <span class="current-value" id="renameCurrentDisplay">Untitled Project</span>
+          </div>
+        </div>
+
+        <!-- Name Input Field -->
+        <div class="m3-form-group">
+          <div class="m3-field-label-row">
+            <label for="renameProjectInput" class="m3-field-label">New Project Name</label>
+            <span class="m3-char-counter" id="renameCharCounter">0 / 60</span>
+          </div>
+          <div class="m3-input-wrapper">
+            <span class="material-symbols-outlined input-leading-icon">edit_note</span>
+            <input type="text" id="renameProjectInput" class="m3-text-input" maxlength="60"
+              placeholder="e.g. TikTok Drama Scene 1" autocomplete="off" spellcheck="false" required>
+            <button type="button" class="input-clear-btn hidden" id="renameClearBtn" title="Clear input" aria-label="Clear input">
+              <span class="material-symbols-outlined">cancel</span>
+            </button>
+          </div>
+          <p class="m3-field-hint">Choose a descriptive title to organize your conversation studio.</p>
+        </div>
+
+        <!-- Quick Suggestions / Tag Presets -->
+        <div class="m3-form-group">
+          <label class="m3-field-label">Quick Suffix Suggestions</label>
+          <div class="m3-chips-row" id="renameSuggestionsRow">
+            <button type="button" class="m3-suggestion-chip" data-suffix=" - Draft">Draft</button>
+            <button type="button" class="m3-suggestion-chip" data-suffix=" - Part 2">Part 2</button>
+            <button type="button" class="m3-suggestion-chip" data-suffix=" (Final Cut)">(Final Cut)</button>
+            <button type="button" class="m3-suggestion-chip" data-suffix=" [TikTok]">[TikTok]</button>
+            <button type="button" class="m3-suggestion-chip" data-suffix=" - Plot Twist">Plot Twist</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Dialog Footer Actions -->
+      <div class="m3-dialog-actions">
+        <button type="button" class="m3-btn m3-btn-outline" id="cancelRenameBtn">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="m3-btn m3-btn-filled" id="confirmRenameBtn">
+          <span class="material-symbols-outlined btn-symbol">check</span>
+          <span>Save Changes</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=6"></script>
+</body>
+
+</html>
